@@ -37,6 +37,8 @@ DROP TABLE mc_sgv_sac CASCADE CONSTRAINTS;
 
 DROP TABLE mc_sgv_visualizacao_video CASCADE CONSTRAINTS;
 
+DROP TABLE mc_sgv_ocorrencia_sac CASCADE CONSTRAINTS;
+
 --
 -- Elimina as sequences criadas para DML no projeto Melhores Compras (MC)
 --

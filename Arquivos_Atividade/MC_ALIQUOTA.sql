@@ -3,8 +3,8 @@ CREATE TABLE "MC_ALIQUOTA_MEDIA_ICMS_ESTADO"
 "VL_PERC_ALIQUOTA_MEDIA" NUMBER(8,2)
 ) 
 
-COMMENT ON COLUMN "MC_ALIQUOTA_MEDIA_ICMS_ESTADO"."SG_ESTADO" IS 'Essa  coluna  irá receber a sigla do estado.'
-COMMENT ON COLUMN "MC_ALIQUOTA_MEDIA_ICMS_ESTADO"."VL_PERC_ALIQUOTA_MEDIA" IS 'Essa  coluna  irá receber a aliquota media do estado.'
+COMMENT ON COLUMN "MC_ALIQUOTA_MEDIA_ICMS_ESTADO"."SG_ESTADO" IS 'Essa  coluna  irá receber a sigla do estado.';
+COMMENT ON COLUMN "MC_ALIQUOTA_MEDIA_ICMS_ESTADO"."VL_PERC_ALIQUOTA_MEDIA" IS 'Essa  coluna  irá receber a aliquota media do estado.';
 REM INSERTING into MC_ALIQUOTA_MEDIA_ICMS_ESTADO
 SET DEFINE OFF;
 Insert into MC_ALIQUOTA_MEDIA_ICMS_ESTADO (SG_ESTADO,VL_PERC_ALIQUOTA_MEDIA) values ('AC',17);
@@ -38,17 +38,13 @@ Insert into MC_ALIQUOTA_MEDIA_ICMS_ESTADO (SG_ESTADO,VL_PERC_ALIQUOTA_MEDIA) val
 --  DDL for Index PK_MC_ALIQUOTA_MEDIA_ICMS_ESTADO
 --------------------------------------------------------
 
-  CREATE UNIQUE INDEX "PK_MC_ALIQUOTA_MEDIA_ICMS_ESTADO" ON "MC_ALIQUOTA_MEDIA_ICMS_ESTADO" ("SG_ESTADO")
+  CREATE UNIQUE INDEX "PK_MC_ALIQUOTA_MEDIA_ICMS_ESTADO" ON "MC_ALIQUOTA_MEDIA_ICMS_ESTADO" ("SG_ESTADO");
 --------------------------------------------------------
 --  Constraints for Table MC_ALIQUOTA_MEDIA_ICMS_ESTADO
 --------------------------------------------------------
 
-  ALTER TABLE "MC_ALIQUOTA_MEDIA_ICMS_ESTADO" ADD CONSTRAINT "PK_MC_ALIQUOTA_MEDIA_ICMS_ESTADO" PRIMARY KEY ("SG_ESTADO")
-  USING INDEX  ENABLE
-  ALTER TABLE "MC_ALIQUOTA_MEDIA_ICMS_ESTADO" MODIFY ("VL_PERC_ALIQUOTA_MEDIA" NOT NULL ENABLE)
-
-
-create or replace function fun_mc_gera_aliquota_media_icms_estado(p_sg_estado in varchar) return number is 
+  ALTER TABLE "MC_ALIQUOTA_MEDIA_ICMS_ESTADO" ADD CONSTRAINT "PK_MC_ALIQUOTA_MEDIA_ICMS_ESTADO" PRIMARY KEY ("SG_ESTADO");
+  ALTER TABLE "MC_ALIQUOTA_create or replace function fun_mc_gera_aliquota_media_icms_estado(p_sg_estado in varchar) return number is 
 v_vl_perc_aliquota_media number;
 begin
 	begin
@@ -61,4 +57,7 @@ begin
 				v_vl_perc_aliquota_media := 00;
 	end;
     return v_vl_perc_aliquota_media;
-end;
+end;MEDIA_ICMS_ESTADO" MODIFY ("VL_PERC_ALIQUOTA_MEDIA" NOT NULL ENABLE);
+
+
+

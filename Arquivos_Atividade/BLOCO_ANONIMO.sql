@@ -26,7 +26,6 @@ DECLARE
     v_aliquota_icms mc_aliquota_media_icms_estado.vl_perc_aliquota_media%TYPE;
     v_icms_produto mc_sgv_ocorrencia_sac.vl_icms_produto%TYPE;
     v_cursor sac_cursor%rowtype;
-    v_numero_sac mc_sgv_ocorrencia_sac.nr_ocorrencia_sac%TYPE;
     
 BEGIN
     IF NOT sac_cursor%ISOPEN THEN
@@ -73,51 +72,18 @@ BEGIN
 
         BEGIN
             -- Item b.4) Recuperando e calculando o valor médio do ICMS do produto
-            SELECT 
-               fun_mc_gera_aliquota_media_icms_estado(v_sg_estado)
-            INTO
-                v_aliquota_icms
-            FROM
-                dual;
+            v_aliquota_icms := fun_mc_gera_aliquota_media_icms_estado(v_sg_estado);
+            
+            v_icms_produto := (v_aliquota_icms/100)*v_cursor.vl_unitario_prod;
+            
             EXCEPTION
-            WHEN NO_DATA_FOUND THEN
-                DBMS_OUTPUT.PUT_LINE('Não foi possível encontrar informações de estado para o cliente ' || v_cursor.numero_cliente);
+            WHEN OTHERS THEN
+                DBMS_OUTPUT.PUT_LINE('Ocorreu um erro: ' || SQLERRM);
                 CONTINUE; -- Continua para a próxima iteração do loop
         END;
-            
-        v_icms_produto := (v_aliquota_icms/100)*v_cursor.vl_unitario_prod;
         
         BEGIN
-            SELECT 
-                nr_ocorrencia_sac INTO v_numero_sac
-            FROM 
-                mc_sgv_ocorrencia_sac
-            WHERE 
-                nr_ocorrencia_sac = v_cursor.numero_ocorrencia_sac;
-            
-                -- O número de SAC já existe na tabela
-            UPDATE mc_sgv_ocorrencia_sac
-            SET dt_abertura_sac = v_cursor.data_abertura_sac,
-            hr_abertura_sac = v_cursor.hora_abertura_sac,
-            ds_tipo_classificacao_sac = v_tipo_sac,
-            ds_indice_satisfacao_atd_sac = v_cursor.indice_satisfacao,
-            cd_produto = v_cursor.codigo_prod,
-            ds_produto = v_cursor.nome_prod,
-            vl_unitario_produto = v_cursor.vl_unitario_prod,
-            vl_perc_lucro = v_cursor.percentual_lucro_prod,
-            vl_unitario_lucro_produto = v_unitario_lucro_prod,
-            sg_estado = v_sg_estado,
-            nm_estado = v_nm_estado,
-            nr_cliente = v_cursor.numero_cliente,
-            nm_cliente = v_cursor.nome_cliente,
-            vl_icms_produto = v_icms_produto
-            WHERE nr_ocorrencia_sac = v_cursor.numero_ocorrencia_sac;
-                
-            DBMS_OUTPUT.PUT_LINE('Os dados do SAC número ' || v_cursor.numero_ocorrencia_sac || ' foram atualizados!');            
-
-            EXCEPTION
-                WHEN NO_DATA_FOUND THEN
-                    INSERT INTO mc_sgv_ocorrencia_sac (
+            INSERT INTO mc_sgv_ocorrencia_sac (
                         nr_ocorrencia_sac,
                         dt_abertura_sac,
                         hr_abertura_sac,
@@ -150,12 +116,59 @@ BEGIN
                         v_cursor.nome_cliente,
                         v_icms_produto
                     );
-                    DBMS_OUTPUT.PUT_LINE('Dados inseridos na tabela MC_SGV_OCORRENCIA_SAC para o SAC número: ' || v_cursor.numero_ocorrencia_sac);
+                COMMIT;
+                DBMS_OUTPUT.PUT_LINE('Número da ocorrência do SAC: ' || v_cursor.numero_ocorrencia_sac);
+                DBMS_OUTPUT.PUT_LINE('Data de abertura do SAC: ' || v_cursor.data_abertura_sac);
+                DBMS_OUTPUT.PUT_LINE('Hora de abertura do SAC: ' || v_cursor.hora_abertura_sac);
+                DBMS_OUTPUT.PUT_LINE('Tipo do SAC: ' || v_tipo_sac);
+                DBMS_OUTPUT.PUT_LINE('Código do produto: ' || v_cursor.codigo_prod);
+                DBMS_OUTPUT.PUT_LINE('Nome do produto: ' || v_cursor.nome_prod);
+                DBMS_OUTPUT.PUT_LINE('Valor unitário do produto: ' || v_cursor.vl_unitario_prod);
+                DBMS_OUTPUT.PUT_LINE('Percentual do lucro unitário do produto: ' || v_cursor.percentual_lucro_prod);
+                DBMS_OUTPUT.PUT_LINE('Número do Cliente: ' || v_cursor.numero_cliente);
+                DBMS_OUTPUT.PUT_LINE('Nome do Cliente: ' || v_cursor.nome_cliente);
+                DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------');
+                DBMS_OUTPUT.PUT_LINE('Dados inseridos na tabela MC_SGV_OCORRENCIA_SAC');
+                DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------');                            
+
+        EXCEPTION
+            WHEN DUP_VAL_ON_INDEX THEN -- O número de SAC já existe na tabela
+                UPDATE mc_sgv_ocorrencia_sac
+                SET dt_abertura_sac = v_cursor.data_abertura_sac,
+                hr_abertura_sac = v_cursor.hora_abertura_sac,
+                ds_tipo_classificacao_sac = v_tipo_sac,
+                ds_indice_satisfacao_atd_sac = v_cursor.indice_satisfacao,
+                cd_produto = v_cursor.codigo_prod,
+                ds_produto = v_cursor.nome_prod,
+                vl_unitario_produto = v_cursor.vl_unitario_prod,
+                vl_perc_lucro = v_cursor.percentual_lucro_prod,
+                vl_unitario_lucro_produto = v_unitario_lucro_prod,
+                sg_estado = v_sg_estado,
+                nm_estado = v_nm_estado,
+                nr_cliente = v_cursor.numero_cliente,
+                nm_cliente = v_cursor.nome_cliente,
+                vl_icms_produto = v_icms_produto
+                WHERE nr_ocorrencia_sac = v_cursor.numero_ocorrencia_sac;
+            
+                DBMS_OUTPUT.PUT_LINE('Número da ocorrência do SAC: ' || v_cursor.numero_ocorrencia_sac);
+                DBMS_OUTPUT.PUT_LINE('Data de abertura do SAC: ' || v_cursor.data_abertura_sac);
+                DBMS_OUTPUT.PUT_LINE('Hora de abertura do SAC: ' || v_cursor.hora_abertura_sac);
+                DBMS_OUTPUT.PUT_LINE('Tipo do SAC: ' || v_tipo_sac);
+                DBMS_OUTPUT.PUT_LINE('Código do produto: ' || v_cursor.codigo_prod);
+                DBMS_OUTPUT.PUT_LINE('Nome do produto: ' || v_cursor.nome_prod);
+                DBMS_OUTPUT.PUT_LINE('Valor unitário do produto: ' || v_cursor.vl_unitario_prod);
+                DBMS_OUTPUT.PUT_LINE('Percentual do lucro unitário do produto: ' || v_cursor.percentual_lucro_prod);
+                DBMS_OUTPUT.PUT_LINE('Número do Cliente: ' || v_cursor.numero_cliente);
+                DBMS_OUTPUT.PUT_LINE('Nome do Cliente: ' || v_cursor.nome_cliente);
+                DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------');
+                DBMS_OUTPUT.PUT_LINE('Os dados do SAC número ' || v_cursor.numero_ocorrencia_sac || ' foram atualizados!');
+                DBMS_OUTPUT.PUT_LINE('-------------------------------------------------------');
+            
+            WHEN OTHERS THEN
+                DBMS_OUTPUT.PUT_LINE ('Erro imprevisto');
         END;
     END LOOP;   
     -- Encerrando o cursor
     CLOSE sac_cursor;
 END;
 /
-
-SELECT * FROM MC_SGV_OCORRENCIA_SAC;
